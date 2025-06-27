@@ -1,7 +1,3 @@
-//Form validations(client side validations): whether data is in correct format and within constraints 
-//Server side Validations:
-//Geocoding: converting ddresses into geographic coordinates
-//Mabox returns data in geojson formt 
 if(process.env.NODE_ENV != "production"){
     require('dotenv').config();
 }
@@ -13,7 +9,7 @@ const mongoose = require('mongoose');
 const method = require('method-override');
 const ejsMate = require("ejs-mate");
 const ExpressError = require("./utils/ExpressError.js");
-const listingRouter = require("./routes/listing.js")
+const listingRouter = require("./routes/listing.js");
 const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
 const cookieParser = require("cookie-parser");
@@ -24,18 +20,23 @@ const flash = require("connect-flash");
 
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
+
+
 const User = require("./models/user.js");
 
+//Parsing the cookies into a secret string keeping track of signing of users
 app.use(cookieParser("secretcode"));
 
 app.set("views",path.join(__dirname,"views"));
 app.set("view engine","ejs");
 app.use(express.static(path.join(__dirname,"public")));
 app.use(express.urlencoded({extended:true}));  //pparses only url encoded things not file type things
+//Setting ejs mate to render ejs files and using method to use patch,delete...
 app.use(method("_method"));
 app.engine('ejs',ejsMate);
 
-const dbUrl = process.env.ATLASDB_URL;
+//const dbUrl = process.env.ATLASDB_URL;
+const dbUrl = "mongodb://127.0.0.1:27017/wanderlust";
 main()
     .then(()=>{
         console.log("connection successful");
@@ -106,27 +107,9 @@ app.use((req,res,next)=>{
     res.locals.error = req.flash("error");
     res.locals.currUser = req.user;
     next();
-})
-
-// app.get("/demouser",async (req,res)=>{
-//     let fakeUser = new User({
-//         email:"student@gmail.com",
-//         username:"Anmol",
-//     });
-//     let registeredUser = await User.register(fakeUser,"helloworld"); // automatically checks whether username is unique or not 
-//     res.send(registeredUser);
-// })
-
-
-// app.get("/", (req,res)=>{
-//     console.dir(req.cookies);
-//     res.send("working....");
-// });
-
-app.get("/greet",(req,res)=>{
-    let {name = "anonymous"} = req.cookies;
-    res.send (`Hi ${name}`);
 });
+
+
 
 app.use("/listings",listingRouter);
 app.use("/listings/:id/reviews",reviewRouter);
@@ -140,7 +123,6 @@ app.all("*",(req,res,next)=>{
 app.use((err,req,res,next)=>{
     let {statusCode=500, message="something went wrong"} = err;
     res.status(statusCode).render("error.ejs",{err});
-    //res.status(statusCode).send(message);
 });
 
 app.listen("8080" , ()=>{
